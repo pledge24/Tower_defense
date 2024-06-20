@@ -1,0 +1,112 @@
+<!doctype html>
+<html lang="ko">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="author" content="Changmin Kang" />
+  <title>내일배움캠프 Node.js 트랙 타워 디펜스 게임</title>
+  <link rel="icon" type="image/x-icon" href="/images/favicon.ico" />
+  <style>
+    body {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+      background-color: #2d2d2d;
+      color: white;
+      flex-direction: column;
+    }
+
+    #gameCanvas {
+      border: 2px solid #000;
+      display: none;
+    }
+
+    .button-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 20px;
+    }
+
+    .button-container button {
+      padding: 10px 20px;
+      font-size: 16px;
+      cursor: pointer;
+    }
+
+    th,
+    td {
+      border: 1px solid #ddd;
+      padding: 8px;
+      text-align: center;
+      font-size: 30px;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="button-container">
+    <h1>유저 랭킹</h1>
+    <table>
+      <thead>
+        <tr>
+          <th>순위</th>
+          <th>유저 아이디</th>
+          <th>최고 점수</th>
+        </tr>
+      </thead>
+      <tbody id="ranking-table-body">
+        <!-- JavaScript에 의해 동적으로 추가될 내용 -->
+      </tbody>
+    </table>
+
+    <script src="https://cdn.socket.io/4.0.0/socket.io.min.js"></script>
+    <script type="module">
+      async function loadRankingData() {
+        const $tableBody = document.getElementById("ranking-table-body");
+
+        try {
+          // 서버로부터 랭킹 데이터를 가져옴
+          const res = await fetch('http://localhost:3000/api/ranking', {
+            method: 'GET',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'include'
+          });
+
+          console.log(res); // 응답 객체를 확인하기 위한 로그
+
+          if (!res.ok) {
+            alert('랭킹 데이터 조회 실패');
+            return;
+          }
+
+          const { filterdRanking: rankingList } = await res.json();
+          console.log(rankingList); // 랭킹 데이터를 확인하기 위한 로그
+
+          // 랭킹 데이터를 테이블에 추가
+          rankingList.forEach((rank, index) => {
+            const row = document.createElement("tr");
+            row.innerHTML = `
+                      <td>${index + 1}</td>
+                      <td>${rank.id}</td>
+                      <td>${rank.score}</td>
+                  `;
+            $tableBody.appendChild(row);
+          });
+        } catch (error) {
+          console.error("Error fetching ranking data:", error);
+          alert('랭킹 데이터를 불러오는 중 오류가 발생했습니다.');
+        }
+      }
+
+      // 페이지 로드 시 랭킹 데이터를 가져오도록 호출
+      loadRankingData();
+    </script>
+
+
+</body>
+
+</html>

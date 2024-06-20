@@ -86,16 +86,16 @@ export const getGameResults = async (userId, take = 10) => {
 // 랭킹 조회
 export const getranking = async (take = 10) => {
   const ranking = await prisma.gameResultLog.findMany({
-    data: {
-      id: true,
-      score: true,
-    },
     orderBy: {
       score: 'desc',
     },
     take,
   });
 
-  //   console.log(ranking);
-  return ranking;
+  const filterdRanking = ranking.map(info => ({
+    id: info.id,
+    score: info.score
+  }));
+
+  return filterdRanking;
 };

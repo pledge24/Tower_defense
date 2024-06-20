@@ -12,19 +12,8 @@ router.post('/signUp', async (req, res, next) => {
     const { id, password } = req.body;
 
     if (!id || !password) {
-      return res.status(400).json({ errorMessage: '입력 값이 잘못되었습니다.' });
+      return res.status(401).json({ errorMessage: '입력 값이 잘못되었습니다.' });
     }
-
-    if (!/^[a-zA-Z0-9]{1,10}$/.test(id)) {
-      return res
-        .status(400)
-        .json({ errorMessage: '아이디는 영문과 숫자로 이루어진 1~10자 길이의 문자열만 허용됩니다.' });
-    }
-
-    if (password.length < 2) {
-      return res.status(400).json({ errorMessage: '비밀번호는 2글자 이상이어야 합니다.' });
-    }
-
     // 아이디 중복 확인 테스트
     const isExistUser = await prisma.user.findUnique({
       where: { id },
@@ -54,17 +43,7 @@ router.post('/signIn', async (req, res, next) => {
     const { id: id, password } = req.body;
 
     if (!id || !password) {
-      return res.status(400).json({ errorMessage: '입력 값이 잘못되었습니다.' });
-    }
-
-    if (!/^[a-zA-Z0-9]{1,10}$/.test(id)) {
-      return res
-        .status(400)
-        .json({ errorMessage: '아이디는 영문과 숫자로 이루어진 1~10자 길이의 문자열만 허용됩니다.' });
-    }
-
-    if (password.length < 2) {
-      return res.status(400).json({ errorMessage: '비밀번호는 2글자 이상이어야 합니다.' });
+      return res.status(401).json({ errorMessage: '입력 값이 잘못되었습니다.' });
     }
 
     // 유저 존재 유무 확인
@@ -84,8 +63,7 @@ router.post('/signIn', async (req, res, next) => {
       {
         id,
       },
-      configs.tokenSecretKey,
-      { expiresIn: '1h' }
+      configs.tokenSecretKey
     );
 
     res.cookie('authorization', `Bearer ${token}`);
@@ -137,4 +115,27 @@ router.get('/auth', async (req, res, next) => {
   }
 });
 
+router.get('/ranking', async (req, res) =>{
+
+  console.log("ranking");
+  try {
+    const ranking = await prisma.gameResultLog.findMany({
+      orderBy: {
+        score: 'desc',
+      },
+      take: 10,
+    });
+  
+    console.log(ranking);
+
+    const filterdRanking = ranking.map(info => ({
+      id: info.id,
+      score: info.score
+    }));
+  
+    return res.status(200).json({ message: 'OK', filterdRanking: filterdRanking });
+  } catch (err) {
+    return res.status(500).json({ err: `server EEE ${err}`});
+  }
+})
 export default router;
